@@ -3,5 +3,4 @@
 /smooth_nosie.py
 /torch_color_ops.py
 /visual_super_seg.py
-/tools/color_ops.py
 /tools/ops.py
