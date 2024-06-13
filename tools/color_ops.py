@@ -2,7 +2,6 @@
 
 import torch
 from torch import Tensor
-from torchvision import transforms
 
 def rgb_to_bgr(input: Tensor, name=None):
     """
@@ -516,7 +515,7 @@ def xyz_to_rgb(input: Tensor, name=None):
     kernel_transposed = kernel.transpose(0, -1)
     value = torch.matmul(input, kernel_transposed)
     value = torch.where(
-        value > 0.0031308,
+        torch.gt(value, torch.tensor(0.0031308)),
         torch.math.pow(value, 1.0 / 2.4) * 1.055 - 0.055,
         value * 12.92,
     )
@@ -569,7 +568,7 @@ def rgb_to_lab(input: Tensor, illuminant="D65", observer="2", name=None):
     xyz = xyz / coords
 
     xyz = torch.where(
-        xyz > 0.008856,
+        torch.gt(xyz, torch.tensor(0.008856)),
         torch.pow(xyz, 1.0 / 3.0),
         xyz * 7.787 + 16.0 / 116.0,
     )
@@ -614,7 +613,7 @@ def lab_to_rgb(input: Tensor, illuminant="D65", observer="2", name=None):
     xyz = torch.stack([x, y, z], axis=-1)
 
     xyz = torch.where(
-        xyz > 0.2068966,
+        torch.gt(xyz, torch.tensor(0.2068966)),
         torch.math.pow(xyz, 3.0),
         (xyz - 16.0 / 116.0) / 7.787,
     )
