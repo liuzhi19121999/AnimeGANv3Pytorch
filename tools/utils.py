@@ -1,5 +1,8 @@
-import tensorflow as tf
-from tensorflow.contrib import slim
+# import tensorflow as tf
+# from tensorflow.contrib import slim
+import torch
+from torch import nn, Tensor
+import torch.functional as F
 import os,cv2
 import numpy as np
 
@@ -47,11 +50,11 @@ def inverse_transform(images):
 def imsave(images, path):
     return cv2.imwrite(path, cv2.cvtColor(images, cv2.COLOR_BGR2RGB))
 
-def show_all_variables():
-    model_vars = tf.trainable_variables()
+# def show_all_variables():
+    # model_vars = tf.trainable_variables()
     # slim.model_analyzer.analyze_vars(model_vars, print_info=True)
-    print('G:')
-    slim.model_analyzer.analyze_vars([var for var in tf.trainable_variables() if var.name.startswith('generator') and  'Adam' not in var.name], print_info=True)
+    # print('G:')
+    # slim.model_analyzer.analyze_vars([var for var in tf.trainable_variables() if var.name.startswith('generator') and  'Adam' not in var.name], print_info=True)
     # slim.model_analyzer.analyze_vars([var for var in tf.trainable_variables() ],print_info=True)
     # print('D:')
     # slim.model_analyzer.analyze_vars([var for var in tf.trainable_variables() if var.name.startswith('discriminator')], print_info=True)
@@ -74,12 +77,12 @@ def _gaussian_kernel(kernel_size, sigma, n_channels, dtype):
     Returns:
         2-D Tensor of gaussian kernel
     """
-    x = tf.range(-kernel_size // 2 + 1, kernel_size // 2 + 1, dtype=dtype)
-    g = tf.math.exp(-(tf.pow(x, 2) / (2 * tf.pow(tf.cast(sigma, dtype), 2))))
-    g_norm2d = tf.pow(tf.reduce_sum(g), 2)
-    g_kernel = tf.tensordot(g, g, axes=0) / g_norm2d
-    g_kernel = tf.expand_dims(g_kernel, axis=-1)
-    return tf.expand_dims(tf.tile(g_kernel, (1, 1, n_channels)), axis=-1)
+    x = np.arange(start=-kernel_size // 2 + 1, stop=kernel_size // 2 + 1, dtype=dtype)
+    g = np.exp(-(np.power(x, 2) / (2 * np.power(np.array(sigma), 2))))
+    g_norm2d = np.power(np.sum(np.power(g, 2)), 2)
+    g_kernel = np.tensordot(g, g, axes=0) / g_norm2d
+    g_kernel = np.expand_dims(g_kernel, axis=-1)
+    return np.expand_dims(np.tile(g_kernel, (1, 1, n_channels)), axis=-1)
 
 def gaussian_blur(img, kernel_size=7, sigma=5., ch = 3):
     """Convolves a gaussian kernel with input image
@@ -90,19 +93,23 @@ def gaussian_blur(img, kernel_size=7, sigma=5., ch = 3):
     Returns:
         img: 3-D Tensor image convolved with gaussian kernel
     """
-    blur = _gaussian_kernel(kernel_size, sigma, ch, img.dtype)
-    img = tf.nn.depthwise_conv2d(img, blur, [1, 1, 1, 1], 'SAME')
-    return img
+    # blur = _gaussian_kernel(kernel_size, sigma, ch, img.dtype)
+    # print(blur)
+    img0 = torch.tensor(img).permute((0, 3, 1, 2))
+    m = nn.Conv2d(ch, ch, groups=ch, kernel_size=kernel_size,
+            padding=kernel_size//2)
+    out: Tensor = m(img0).permute((0, 2, 3, 1))
+    out = out.detach().numpy()
+    return out
 
 if __name__ == "__main__":
-    path = '../dataset/val/1.jpg'
-    image_foder = '../dataset/Hayao/style/11.jpg'
+    path = './dataset/val/1.jpg'
+    image_foder = './dataset/Hayao/style/11.jpg'
     Im = cv2.imread(image_foder).astype(np.float32)
     Im = np.expand_dims(Im, axis=0)
-    a = gaussian_blur(tf.convert_to_tensor(Im))
-    with tf.Session() as sess:
-        S = sess.run(a)
-    S = np.squeeze(S)
+    print(Im.shape)
+    a = gaussian_blur(Im)
+    S = np.squeeze(a)
     # S=S.clip(0,1)
     print(type(S[0,0,0]),S.max(),S.min())
     cv2.imshow('a',S.astype(np.uint8))

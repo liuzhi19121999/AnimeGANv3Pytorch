@@ -124,7 +124,7 @@ def rgb_to_ypbpr(input: Tensor, name=None):
 
     kernel_transposed = kernel.transpose(0, -1)
 
-    return torch.matmul(input, kernel_transposed)
+    return torch.tensordot(input, kernel_transposed, dims=[-1, 0])
 
 
 def ypbpr_to_rgb(input: Tensor, name=None):
@@ -154,7 +154,7 @@ def ypbpr_to_rgb(input: Tensor, name=None):
 
     kernel_transposed = kernel.transpose(0, -1)
 
-    return torch.matmul(input, kernel_transposed)
+    return torch.tensordot(input, kernel_transposed, dims=[-1, 0])
 
     # return tf.tensordot(input, tf.transpose(kernel), axes=((-1,), (0,)))
 
@@ -178,7 +178,7 @@ def rgb_to_ydbdr(input: Tensor, name=None):
 
     kernel_transposed = kernel.transpose(0, -1)
 
-    return torch.matmul(input, kernel_transposed)
+    return torch.tensordot(input, kernel_transposed, dims=[-1, 0])
 
     # return tf.tensordot(input, tf.transpose(kernel), axes=((-1,), (0,)))
 
@@ -210,7 +210,7 @@ def ydbdr_to_rgb(input: Tensor, name=None):
 
     kernel_transposed = kernel.transpose(0, -1)
 
-    return torch.matmul(input, kernel_transposed)
+    return torch.tensordot(input, kernel_transposed, dims=[-1, 0])
 
     # return tf.tensordot(input, tf.transpose(kernel), axes=((-1,), (0,)))
 
