@@ -4,8 +4,8 @@ import torch.nn.functional as F
 from tools.vgg19 import VGG19Multi, VGG19Single
 from tools.color_ops import *
 
-vgg19_single = VGG19Single()
-vgg19_multi = VGG19Multi()
+vgg19_single = VGG19Single().eval()
+vgg19_multi = VGG19Multi().eval()
 
 def con_loss_fn(real, fake, weight=1.0):
     return  weight * VGG_LOSS(real, fake)

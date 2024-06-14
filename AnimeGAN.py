@@ -19,11 +19,12 @@ def grayscale_to_rgb(input_tensor: Tensor) -> Tensor:
     return input_tensor.expand((3, -1, -1))
 
 class Trainer:
-    def __init__(self, dataset="Hayao", lr_g=2e-5, lr_d=4e-5, device="cpu"):
+    def __init__(self, dataset="Hayao", init_lr_g=2e-4, lr_g=1e-4, lr_d=1e-4, device="cpu"):
         super(Trainer, self).__init__()
         self.device_type = device
         self.G = GeneratorV3(dataset=dataset)
         self.D = DiscrimeV3()
+        self.optimizer_init_g = optim.Adam(self.G.parameters(), lr=init_lr_g, betas=(0.5, 0.999))
         self.optimizer_g = optim.Adam(self.G.parameters(), lr=lr_g, betas=(0.5, 0.999))
         self.optimizer_d = optim.Adam(self.D.parameters(), lr=lr_d, betas=(0.5, 0.999))
     
@@ -44,7 +45,7 @@ class Trainer:
         generated = self.tanh_out_scale(guided_filter(self.sigm_out_scale(generated_s),self.sigm_out_scale(generated_s), 2, 0.01))
         # val
         val_generated_s, val_generated_m = self.G(real_photo)
-        real_generated = self.tanh_out_scale(guided_filter(self.sigm_out_scale(val_generated_s),self.sigm_out_scale(val_generated_s), 2, 0.01))
+        val_generated = self.tanh_out_scale(guided_filter(self.sigm_out_scale(val_generated_s),self.sigm_out_scale(val_generated_s), 2, 0.01))
         # gray maping
         fake_sty_gray = grayscale_to_rgb(rgb_to_grayscale(generated))
         anime_sty_gray = grayscale_to_rgb(rgb_to_grayscale(anime))
@@ -57,7 +58,7 @@ class Trainer:
         generated_m_logit = self.D(generated_m)
         fake_NLMean_logit = self.D(fake_NLMean_l0)
         # loss
-        Pre_train_G_loss = con_loss_fn(real_photo, generated)
+        Pre_train_G_loss: Tensor = con_loss_fn(real_photo, generated)
         # GAN Support
         con_loss =  con_loss_fn(real_photo, generated, 0.5)
         s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [0.1, 2.0,  28]) 
@@ -82,8 +83,8 @@ class Trainer:
         G_main_loss = g_m_loss + p0_loss + p4_loss + tv_loss_m
         D_main_loss = discriminator_loss_m(fake_NLMean_logit, generated_m_logit) * 0.1
 
-        Generator_loss =  G_support_loss +  G_main_loss
-        Discriminator_loss = D_support_loss + D_main_loss
+        Generator_loss: Tensor =  G_support_loss +  G_main_loss
+        Discriminator_loss: Tensor = D_support_loss + D_main_loss
     
     def get_seg(self, batch_image):
         def get_superpixel(image):
