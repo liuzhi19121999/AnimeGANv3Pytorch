@@ -2,5 +2,3 @@
 /smooth_data.py
 /smooth_nosie.py
 /torch_color_ops.py
-/visual_super_seg.py
-/tools/ops.py

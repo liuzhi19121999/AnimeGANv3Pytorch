@@ -456,6 +456,7 @@ def yuv_to_rgb(input: Tensor, name=None):
 
 def rgb_to_xyz(input: Tensor, name=None):
     """
+    修改为 [N, 3, H, W]  [3, H, W]
     Convert a RGB image to CIE XYZ.
     Args:
       input: A 3-D (`[H, W, 3]`) or 4-D (`[N, H, W, 3]`) Tensor.
@@ -480,9 +481,9 @@ def rgb_to_xyz(input: Tensor, name=None):
         input / 12.92,
     )
 
-    kernel_transposed = kernel.transpose(0, -1)
+    # kernel_transposed = kernel.transpose(0, -1)
 
-    return torch.matmul(value, kernel_transposed)
+    return torch.tensordot(value, kernel.transpose(0, 1), dims=([-1], [0]))
     
     # return tf.tensordot(value, tf.transpose(kernel), axes=((-1,), (0,)))
 
@@ -524,6 +525,7 @@ def xyz_to_rgb(input: Tensor, name=None):
 
 def rgb_to_lab(input: Tensor, illuminant="D65", observer="2", name=None):
     """
+    进行修改 [N, 3, H, W] [3, H, W]
     Convert a RGB image to CIE LAB.
     Args:
       input: A 3-D (`[H, W, 3]`) or 4-D (`[N, H, W, 3]`) Tensor.
@@ -573,7 +575,9 @@ def rgb_to_lab(input: Tensor, illuminant="D65", observer="2", name=None):
         xyz * 7.787 + 16.0 / 116.0,
     )
 
-    xyz = torch.unbind(xyz, dim=-1)
+    dim = 0 if xyz.shape.__len__() == 3 else 1
+
+    xyz = torch.unbind(xyz, dim=dim)
     x, y, z = xyz[0], xyz[1], xyz[2]
 
     # Vector scaling
@@ -581,7 +585,7 @@ def rgb_to_lab(input: Tensor, illuminant="D65", observer="2", name=None):
     a = (x - y) * 500.0
     b = (y - z) * 200.0
 
-    return torch.stack([l, a, b], dim=-1)
+    return torch.stack([l, a, b], dim=dim)
 
 
 def lab_to_rgb(input: Tensor, illuminant="D65", observer="2", name=None):

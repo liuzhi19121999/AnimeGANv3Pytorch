@@ -1,7 +1,9 @@
 from DTGAN import GeneratorV3, DiscrimeV3
 from tools.color_ops import rgb_to_lab
 from tools.L0_smoothing import L0Smoothing
-from tools.ops import con_loss
+from tools.ops import con_loss_fn, style_loss_decentralization_3, region_smoothing_loss, \
+    VGG_LOSS, Lab_color_loss, total_variation_loss, generator_loss, discriminator_loss, \
+    discriminator_loss_346, L1_loss, generator_loss_m, discriminator_loss_m
 from tools.GuidedFilter import guided_filter
 from torch import optim, Tensor
 from torchvision.transforms.v2.functional import rgb_to_grayscale
@@ -29,10 +31,12 @@ class Trainer:
         '''训练模型'''
         photo = torch.rand((2, 3, 512, 512))
         real_photo = torch.rand((2, 3, 512, 512))
+        photo_superpixel = torch.rand((2, 3, 512, 512))
 
         anime = torch.rand((2, 3, 512, 512))
         anime_smooth = torch.rand((2, 3, 512, 512))
 
+        fake_superpixel = torch.rand((2, 3, 512, 512))
         fake_NLMean_l0 = torch.rand((2, 3, 512, 512))
         # 一次迭代
         # generated and discrimination
@@ -53,22 +57,33 @@ class Trainer:
         generated_m_logit = self.D(generated_m)
         fake_NLMean_logit = self.D(fake_NLMean_l0)
         # loss
-        Pre_train_G_loss = con_loss(real_photo, generated)
+        Pre_train_G_loss = con_loss_fn(real_photo, generated)
         # GAN Support
-        con_loss =  con_loss(real_photo, generated, 0.5)
-        s22, s33, s44  = style_loss_decentralization_3(self.anime_sty_gray, self.fake_sty_gray,  [0.1, 2.0,  28]) 
-        self.sty_loss = self.s22 + self.s33 + self.s44
+        con_loss =  con_loss_fn(real_photo, generated, 0.5)
+        s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [0.1, 2.0,  28]) 
+        sty_loss = s22 + s33 + s44
 
-        self.rs_loss =  region_smoothing_loss(self.fake_superpixel, self.generated, 0.8 ) + \
-                        VGG_LOSS(self.photo_superpixel, self.generated) * 0.5
+        rs_loss =  region_smoothing_loss(fake_superpixel, generated, 0.8 ) + \
+                        VGG_LOSS(photo_superpixel, generated) * 0.5
 
-        self.color_loss =  Lab_color_loss(self.real_photo, self.generated, 8. )
-        self.tv_loss  = 0.0001 * total_variation_loss(self.generated)
+        color_loss =  Lab_color_loss(real_photo, generated, 8. )
+        tv_loss  = 0.0001 * total_variation_loss(generated)
 
-        self.g_adv_loss = generator_loss(fake_gray_logit)
-        self.G_support_loss = self.g_adv_loss + self.con_loss + self.sty_loss   + self.rs_loss +  self.color_loss +self.tv_loss
-        self.D_support_loss = discriminator_loss(anime_gray_logit, fake_gray_logit) \
+        g_adv_loss = generator_loss(fake_gray_logit)
+        G_support_loss = g_adv_loss + con_loss + sty_loss + rs_loss + color_loss + tv_loss
+        D_support_loss = discriminator_loss(anime_gray_logit, fake_gray_logit) \
                             + discriminator_loss_346(gray_anime_smooth_logit) * 5.
+        # main
+        tv_loss_m = 0.0001 * total_variation_loss(generated_m)
+        p4_loss = VGG_LOSS(fake_NLMean_l0, generated_m) * 0.5
+        p0_loss = L1_loss(fake_NLMean_l0, generated_m) * 50
+        g_m_loss = generator_loss_m(generated_m_logit) * 0.02
+
+        G_main_loss = g_m_loss + p0_loss + p4_loss + tv_loss_m
+        D_main_loss = discriminator_loss_m(fake_NLMean_logit, generated_m_logit) * 0.1
+
+        Generator_loss =  G_support_loss +  G_main_loss
+        Discriminator_loss = D_support_loss + D_main_loss
     
     def get_seg(self, batch_image):
         def get_superpixel(image):
