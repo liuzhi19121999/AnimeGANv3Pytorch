@@ -23,10 +23,10 @@ def grayscale_to_rgb(input_tensor: Tensor) -> Tensor:
     return input_tensor.expand((3, -1, -1))
 
 class Trainer:
-    def __init__(self, dataset="SummerWar", epoch=100, start_epoch=0, data_set_num=800, batch=4, init_g_epoch=10, init_lr_g=2e-4, lr_g=1e-4, lr_d=1e-4, device="cpu"):
+    def __init__(self, dataset="SummerWar", epoch=100, start_epoch=0, batch=4, init_g_epoch=10, init_lr_g=2e-4, lr_g=1e-4, lr_d=1e-4, device="cpu"):
         super(Trainer, self).__init__()
         self.epoch = epoch
-        self.data_set_num = data_set_num
+        # self.data_set_num = data_set_num
         self.batch = batch
         self.init_g_epoch = init_g_epoch
         self.device_type = device
@@ -106,6 +106,7 @@ class Trainer:
         Generator_loss.backward()
         self.optimizer_g.step()
         
+        # Update D Net
         # support
         fake_gray_logit = self.D(fake_sty_gray)
         anime_gray_logit = self.D(anime_sty_gray)
@@ -128,6 +129,7 @@ class Trainer:
         for epo in range(self.start_epoch, self.epoch + 1):
             # Steps of Every Epoch
             data_loader = DataLoader(self.data_set, batch_size=self.batch, shuffle=False)
+            step_length = data_loader.__len__()
             for (step, data_batch) in enumerate(data_loader):
                 start_time = time()
                 real_photo = torch.concat(data_batch["photo"])
@@ -135,8 +137,18 @@ class Trainer:
                 anime_smooth = torch.concat(data_batch["smooth"])
                 
                 if epo < self.init_g_epoch:
-                    self.init_g_train(real_photo)
-
+                    g_loss = self.init_g_train(real_photo)
+                    g_loss_print = g_loss.to("cpu").data
+                    step_time = time() - start_time
+                    print(f"Epoch: {epo:4d}  Step: {step:5d}  Time: {step_time:4d} s  ETA: {(step_length - step - 1)*step_time:6d} s  G-Loss: {g_loss_print:10f}")
+                else:
+                    photo_superpixel = self.get_seg(real_photo)
+                    g_loss, d_loss = self.update_g(real_photo, photo_superpixel, anime, anime_smooth)
+                    g_loss_print = g_loss.to("cpu").data
+                    d_loss_print = d_loss.to("cpu").data
+                    step_time = time() - start_time
+                    print(f"Epoch: {epo:4d}  Step: {step:5d}  Time: {step_time:4d} s  ETA: {(step_length - step - 1)*step_time:6d} s  G-Loss: {g_loss_print:10f}  D-Loss: {d_loss_print:10f}")
+            self.save_model_data()
 
         # photo = torch.rand((2, 3, 512, 512))
         # real_photo = torch.rand((2, 3, 512, 512))
