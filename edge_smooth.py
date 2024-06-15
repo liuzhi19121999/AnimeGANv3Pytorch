@@ -8,7 +8,7 @@ def parse_args():
     desc = "Edge smoothed"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--dataset', type=str, default='Hayao', help='dataset_name')
-    parser.add_argument('--img_size', type=int, default=512, help='The size of image')
+    parser.add_argument('--img_size', type=int, default=256, help='The size of image')
 
     return parser.parse_args()
 
