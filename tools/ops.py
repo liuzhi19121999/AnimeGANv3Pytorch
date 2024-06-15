@@ -63,8 +63,8 @@ def Lab_color_loss(photo, fake, weight=1.0):
     photo = rgb_to_lab(photo)
     fake = rgb_to_lab(fake)
     # L: 0~100, a: -128~127, b: -128~127
-    loss =   2. * L1_loss(photo[:,:,:,0]/100., fake[:,:,:,0]/100.) + L1_loss((photo[:,:,:,1]+128.)/255., (fake[:,:,:,1]+128.)/255.) \
-            + L1_loss((photo[:,:,:,2]+128.)/255., (fake[:,:,:,2]+128.)/255.)
+    loss =   2. * L1_loss(photo[:,0,:,:]/100., fake[:,0,:,:]/100.) + L1_loss((photo[:,1,:,:]+128.)/255., (fake[:,1,:,:]+128.)/255.) \
+            + L1_loss((photo[:,2,:,:]+128.)/255., (fake[:,2,:,:]+128.)/255.)
     return  weight * loss
 
 
@@ -74,11 +74,11 @@ def total_variation_loss(inputs):
     A smooth loss in fact. Like the smooth prior in MRF.
     V(y) = || y_{n+1} - y_n ||_2
     """
-    dh = inputs[:, :, :-1, :] - inputs[:, :, 1:, :]
-    dw = inputs[:, :, :, :-1] - inputs[:, :, :, 1:]
-    size_dh = torch.tensor(torch.tensor(dh).size(), dtype=torch.float32)
-    size_dw = torch.tensor(torch.tensor(dw).size(), dtype=torch.float32)
-    return F.mse_loss(dh) / size_dh + F.mse_loss(dw) / size_dw
+    # dh = inputs[:, :, :-1, :] - inputs[:, :, 1:, :]
+    # dw = inputs[:, :, :, :-1] - inputs[:, :, :, 1:]
+    # size_dh = torch.tensor(torch.tensor(dh).size(), dtype=torch.float32)
+    # size_dw = torch.tensor(torch.tensor(dw).size(), dtype=torch.float32)
+    return F.mse_loss(inputs[:, :, :-1, :], inputs[:, :, 1:, :]) + F.mse_loss(inputs[:, :, :, :-1], inputs[:, :, :, 1:])
 
 
 def generator_loss(fake):

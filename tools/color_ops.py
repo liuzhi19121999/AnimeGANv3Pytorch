@@ -476,14 +476,13 @@ def rgb_to_xyz(input: Tensor, name=None):
         dtype=input.dtype,
     )
     value = torch.where(
-        input > 0.04045,
+        torch.gt(input, 0.04045),
         torch.pow((input + 0.055) / 1.055, 2.4),
         input / 12.92,
     )
 
     # kernel_transposed = kernel.transpose(0, -1)
-
-    return torch.tensordot(value, kernel.transpose(0, 1), dims=([-1], [0]))
+    return torch.tensordot(value, kernel.transpose(0, 1), dims=([1], [0]))
     
     # return tf.tensordot(value, tf.transpose(kernel), axes=((-1,), (0,)))
 

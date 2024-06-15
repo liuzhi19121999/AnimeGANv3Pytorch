@@ -41,7 +41,6 @@ def psf2otf(psf, size):
 
 
 def L0Smoothing(Im, lamda=2e-2, kappa=2.0):
-
     S = Im
     betamax = 1e5
     fx = np.array([[1, -1]])
@@ -71,7 +70,7 @@ def L0Smoothing(Im, lamda=2e-2, kappa=2.0):
             t = (h ** 2 + v ** 2) < lamda / beta
         else:
             t = np.sum((h ** 2 + v ** 2), 2) < lamda / beta
-            t1 = np.zeros((N, M, D), dtype=np.bool)
+            t1 = np.zeros((N, M, D), dtype=bool)
             for i in range(D):
                 t1[:, :, i] = t
             t = t1

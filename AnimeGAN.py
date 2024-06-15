@@ -76,14 +76,21 @@ class Trainer:
     
     def update_g(self, photo: Tensor, photo_superpixel: Tensor, anime: Tensor, anime_smooth: Tensor):
         '''训练模型'''
+        self.optimizer_d.zero_grad()
+        self.optimizer_g.zero_grad()
         # Update G Net
         generated_s, generated_m = self.G(photo)
-        generated = self.tanh_out_scale(guided_filter(self.sigm_out_scale(generated_s),self.sigm_out_scale(generated_s), 2, 0.01))
-        fake_superpixel = self.get_seg(generated)
-        fake_NLMean_l0 = self.get_NLMean_l0(generated_s)
+        generated: Tensor = self.tanh_out_scale(guided_filter(self.sigm_out_scale(generated_s),self.sigm_out_scale(generated_s), 2, 0.01))
+        fake_superpixel = self.get_seg(generated.detach().numpy())
+        fake_NLMean_l0 = self.get_NLMean_l0(generated_s.detach().numpy())
         fake_sty_gray = grayscale_to_rgb(rgb_to_grayscale(generated))
         anime_sty_gray = grayscale_to_rgb(rgb_to_grayscale(anime))
         gray_anime_smooth = grayscale_to_rgb(rgb_to_grayscale(anime_smooth))
+        # support
+        fake_gray_logit = self.D(fake_sty_gray.detach())
+        anime_gray_logit = self.D(anime_sty_gray.detach())
+        gray_anime_smooth_logit = self.D(gray_anime_smooth.detach())
+        generated_m_logit = self.D(generated_m.detach())
         # GAN Support
         con_loss =  con_loss_fn(photo, generated, 0.5)
         s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [0.1, 2.0,  28])
@@ -92,33 +99,28 @@ class Trainer:
                         VGG_LOSS(photo_superpixel, generated) * 0.5
         color_loss =  Lab_color_loss(photo, generated, 8. )
         tv_loss  = 0.0001 * total_variation_loss(generated)
-        g_adv_loss = generator_loss(fake_gray_logit)
+        g_adv_loss = generator_loss(fake_gray_logit.detach())
         G_support_loss = g_adv_loss + con_loss + sty_loss + rs_loss + color_loss + tv_loss
         # main
         tv_loss_m = 0.0001 * total_variation_loss(generated_m)
         p4_loss = VGG_LOSS(fake_NLMean_l0, generated_m) * 0.5
         p0_loss = L1_loss(fake_NLMean_l0, generated_m) * 50
-        g_m_loss = generator_loss_m(generated_m_logit) * 0.02
+        g_m_loss = generator_loss_m(generated_m_logit.detach()) * 0.02
 
         G_main_loss = g_m_loss + p0_loss + p4_loss + tv_loss_m
         Generator_loss: Tensor =  G_support_loss +  G_main_loss
-        self.optimizer_g.zero_grad()
+        # self.optimizer_g.zero_grad()
         Generator_loss.backward()
         self.optimizer_g.step()
         
         # Update D Net
-        # support
-        fake_gray_logit = self.D(fake_sty_gray)
-        anime_gray_logit = self.D(anime_sty_gray)
-        gray_anime_smooth_logit = self.D(gray_anime_smooth)
         # main
-        generated_m_logit = self.D(generated_m)
         fake_NLMean_logit = self.D(fake_NLMean_l0)
         D_support_loss = discriminator_loss(anime_gray_logit, fake_gray_logit) \
                             + discriminator_loss_346(gray_anime_smooth_logit) * 5.
         D_main_loss = discriminator_loss_m(fake_NLMean_logit, generated_m_logit) * 0.1
         Discriminator_loss: Tensor = D_support_loss + D_main_loss
-        self.optimizer_d.zero_grad()
+        # self.optimizer_d.zero_grad()
         Discriminator_loss.backward()
         self.optimizer_d.step()
 
@@ -142,7 +144,7 @@ class Trainer:
                     step_time = time() - start_time
                     print(f"Epoch: {epo:4d}  Step: {step:5d}/{step_length}  Time: {int(step_time):4d} s  ETA: {int((step_length - step - 1)*step_time):6d} s  G-Loss: {g_loss_print:10f}")
                 else:
-                    photo_superpixel = self.get_seg(real_photo)
+                    photo_superpixel = self.get_seg(real_photo.detach().numpy())
                     g_loss, d_loss = self.update_g(real_photo, photo_superpixel, anime, anime_smooth)
                     g_loss_print = g_loss.to("cpu").data
                     d_loss_print = d_loss.to("cpu").data
@@ -211,12 +213,12 @@ class Trainer:
             image = (image + 1.) * 127.5
             image = np.clip(image, 0, 255).astype(np.uint8)  # [-1. ,1.] ~ [0, 255]
             image_seg = segmentation.felzenszwalb(image, scale=5, sigma=0.8, min_size=100)
-            image = color.label2rgb(image_seg, image,  bg_label=-1, kind='avg').astype(np.float32)
+            image = color.label2rgb(image_seg, image, bg_label=-1, kind='avg').astype(np.float32)
             image = image / 127.5 - 1.0
             return image
         num_job = np.shape(batch_image)[0]
-        batch_out = Parallel(n_jobs=num_job)(delayed(get_superpixel) (image) for image in batch_image)
-        return np.array(batch_out)
+        batch_out = Parallel(n_jobs=num_job)(delayed(get_superpixel)(image.transpose((1, 2, 0))) for image in batch_image)
+        return torch.tensor(np.array(batch_out)).permute((0, 3, 1, 2))
 
     def get_simple_superpixel_improve(self, batch_image, seg_num=200):
         def process_slic(image):
@@ -234,8 +236,8 @@ class Trainer:
             image = L0Smoothing(image/255, 0.005).astype(np.float32) * 2. - 1.
             return image.clip(-1., 1.)
         num_job = np.shape(batch_image)[0]
-        batch_out = Parallel(n_jobs=num_job)(delayed(process_slic)(image) for image in batch_image)
-        return np.array(batch_out)
+        batch_out = Parallel(n_jobs=num_job)(delayed(process_slic)(image.transpose((1, 2, 0))) for image in batch_image)
+        return torch.tensor(np.array(batch_out)).permute((0, 3, 1, 2))
     
     def to_lab(self, x):
         """
