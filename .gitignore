@@ -11,3 +11,5 @@
 /dataset/SummerWar/smooth/*.jpg
 /dataset/SummerWar/smooth_noise/*.jpg
 /dataset/SummerWar/style/*.jpg
+/dataSet.py
+/kaggle.py
