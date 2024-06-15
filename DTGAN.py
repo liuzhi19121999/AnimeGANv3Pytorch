@@ -158,6 +158,22 @@ class GeneratorV3(nn.Module):
             nn.Tanh()
         )
     
+    def padding_input(self, x: Tensor, k=1, s=1, padding_mode="reflect"):
+        if (k - s) % 2 == 0 :
+            pad = (k - s) // 2
+            pad_top, pad_bottom, pad_left, pad_right = pad, pad, pad, pad
+
+        else :
+            pad = (k - s) // 2
+            pad_bottom, pad_right = pad, pad,
+            pad_top, pad_left = k - s - pad_bottom, k - s - pad_right
+
+        if padding_mode == 'zero' :
+            x = F.pad(x, (pad_left, pad_right, pad_top, pad_bottom))
+        if padding_mode == 'reflect' :
+            x = F.pad(x, (pad_left, pad_right, pad_top, pad_bottom), mode='reflect')
+        return x
+
     def forward(self, x):
         x0 = self.header_first(x)
         x1 = self.header_second(x0)
@@ -174,8 +190,9 @@ class GeneratorV3(nn.Module):
         s_x6 = self.s_rb_third_f(s_x5)
         s_x6 = self.s_rb_third_s(s_x6 + x0)
 
+        s_x6 = self.padding_input(s_x6, 7)
         fake_s = self.s_conv_tahn(s_x6)
-
+        
         # main
         m_x3 = self.m_extral_attention(x3)
         m_x4 = self.m_rb_first_f(m_x3)
@@ -187,6 +204,7 @@ class GeneratorV3(nn.Module):
         m_x6 = self.m_rb_third_f(m_x5)
         m_x6 = self.m_rb_third_s(m_x6 + x0)
 
+        m_x6 = self.padding_input(m_x6, 7)
         fake_m = self.m_conv_tahn(m_x6)
 
         return fake_s, fake_m
@@ -218,8 +236,8 @@ class DiscrimeV3(nn.Module):
         return x
 
 if __name__ == "__main__":
-    input_val = torch.rand((2, 3, 1024, 512))
+    input_val = torch.rand((2, 3, 256, 256))
     model = GeneratorV3("hayao")
     # dis = DiscrimeV3().to(device=dml)
     y_s, y_m = model(input_val)
-    print(y_s)
+    print(y_s.shape)

@@ -10,10 +10,10 @@ vgg19_multi = VGG19Multi().eval()
 def con_loss_fn(real, fake, weight=1.0):
     return  weight * VGG_LOSS(real, fake)
 
-def VGG_LOSS(x, y):
+def VGG_LOSS(x: Tensor, y: Tensor):
     # The number of feature channels in layer 4-4 of vgg19 is 512
     x: Tensor = vgg19_single(x)
-    y = vgg19_single(y)
+    y: Tensor = vgg19_single(y)
     c = 0
     if x.shape.__len__() == 4:
         c = x.shape[1]

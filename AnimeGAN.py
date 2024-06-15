@@ -140,14 +140,14 @@ class Trainer:
                     g_loss = self.init_g_train(real_photo)
                     g_loss_print = g_loss.to("cpu").data
                     step_time = time() - start_time
-                    print(f"Epoch: {epo:4d}  Step: {step:5d}  Time: {step_time:4d} s  ETA: {(step_length - step - 1)*step_time:6d} s  G-Loss: {g_loss_print:10f}")
+                    print(f"Epoch: {epo:4d}  Step: {step:5d}/{step_length}  Time: {int(step_time):4d} s  ETA: {int((step_length - step - 1)*step_time):6d} s  G-Loss: {g_loss_print:10f}")
                 else:
                     photo_superpixel = self.get_seg(real_photo)
                     g_loss, d_loss = self.update_g(real_photo, photo_superpixel, anime, anime_smooth)
                     g_loss_print = g_loss.to("cpu").data
                     d_loss_print = d_loss.to("cpu").data
                     step_time = time() - start_time
-                    print(f"Epoch: {epo:4d}  Step: {step:5d}  Time: {step_time:4d} s  ETA: {(step_length - step - 1)*step_time:6d} s  G-Loss: {g_loss_print:10f}  D-Loss: {d_loss_print:10f}")
+                    print(f"Epoch: {epo:4d}  Step: {step:5d}/{step_length}  Time: {int(step_time):4d} s  ETA: {int((step_length - step - 1)*step_time):6d} s  G-Loss: {g_loss_print:10f}  D-Loss: {d_loss_print:10f}")
             self.save_model_data()
 
         # photo = torch.rand((2, 3, 512, 512))
