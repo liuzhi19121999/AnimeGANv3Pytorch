@@ -5,7 +5,7 @@ from tools.ops import con_loss_fn, style_loss_decentralization_3, region_smoothi
     VGG_LOSS, Lab_color_loss, total_variation_loss, generator_loss, discriminator_loss, \
     discriminator_loss_346, L1_loss, generator_loss_m, discriminator_loss_m
 from tools.GuidedFilter import guided_filter
-from torch import optim, Tensor
+from torch import optim, Tensor, nn
 from torchvision.transforms.v2.functional import rgb_to_grayscale
 from torch.utils.data.dataloader import DataLoader
 import torch
@@ -50,19 +50,31 @@ class Trainer:
         # D
         torch.save({"model": self.D.state_dict()}, f"./model_state/{self.data_dir}/discrime.pth")
     
+    def init_model_weight(self, m):
+        # recommend
+        if isinstance(m, nn.Conv2d): 
+            nn.init.xavier_normal_(m.weight.data) 
+            nn.init.xavier_normal_(m.bias.data)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight,1)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm1d):
+            nn.init.constant_(m.weight,1)
+            nn.init.constant_(m.bias, 0)
+    
     def load_model_data(self):
         # G
         try:
             g_state = torch.load(f"./model_state/{self.data_dir}/generator.pth")
             self.G.load_state_dict(g_state["model"])
         except Exception:
-            pass
+            self.init_model_weight(self.G)
         # D
         try:
             d_state = torch.load(f"./model_state/{self.data_dir}/discrime.pth")
             self.D.load_state_dict(d_state["model"])
         except Exception:
-            pass
+            self.init_model_weight(self.D)
     
     def init_g_train(self, photo: Tensor):
         '''初始化生成器'''
