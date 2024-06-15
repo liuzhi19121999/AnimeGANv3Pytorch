@@ -1,4 +1,13 @@
-/dataset
 /smooth_data.py
 /smooth_nosie.py
 /torch_color_ops.py
+/dataset/test
+/dataset/Shinkai
+/dataset/Paprika
+/dataset/Hayao
+/dataset/val/*.jpg
+/dataset/train_photo/*.jpg
+/dataset/seg_train_5-0.8-50/*.jpg
+/dataset/SummerWar/smooth/*.jpg
+/dataset/SummerWar/smooth_noise/*.jpg
+/dataset/SummerWar/style/*.jpg
