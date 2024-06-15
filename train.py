@@ -2,7 +2,7 @@ from AnimeGAN import Trainer
 import argparse
 
 DATA_SET = "SummerWar"
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 EPOCH = 100
 START_EPOCH = 0
 INIT_G_EPOCH = 10
