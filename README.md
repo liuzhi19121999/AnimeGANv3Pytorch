@@ -14,6 +14,8 @@ As AnimeGANv3 adopts the new DTGAN model and there is currently no corresponding
 
 2. Migration of the Main Model Framework of VGG19 under PyTorch was done, but with pre-trained parameters not loaded yet.
 
+3. Upload VGG-19 weights of .pth on release. It can be used to generate VGG-19 loss in training.
+
 ## License
 
 Please refer to the relevant permission statement of the original author.
