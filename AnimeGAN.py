@@ -41,14 +41,18 @@ class Trainer:
         self.data_set = ImageDataSet(dataset)
 
         self.load_model_data()
+        self.model_to_device()
+        vgg_to_device(device)
     
     def save_model_data(self):
         '''保存模型数据'''
         check_folder(f"./model_state/{self.data_dir}")
         # G
-        torch.save({"model": self.G.state_dict()}, f"./model_state/{self.data_dir}/generator.pth")
+        torch.save({"model": self.G.to(device="cpu").state_dict()}, f"./model_state/{self.data_dir}/generator.pth")
         # D
-        torch.save({"model": self.D.state_dict()}, f"./model_state/{self.data_dir}/discrime.pth")
+        torch.save({"model": self.D.to(device="cpu").state_dict()}, f"./model_state/{self.data_dir}/discrime.pth")
+        # 模型迁移回原设备
+        self.model_to_device()
     
     def init_model_weight(self, m):
         # recommend
@@ -79,7 +83,6 @@ class Trainer:
     def model_to_device(self):
         self.D.to(device=self.device_type)
         self.G.to(device=self.device_type)
-        vgg_to_device(self.device_type)
     
     def init_g_train(self, photo: Tensor):
         '''初始化生成器'''
@@ -167,7 +170,7 @@ class Trainer:
                     d_loss_print = d_loss.to(device="cpu").data
                     step_time = time() - start_time
                     print(f"Epoch: {epo:4d}  Step: {step:5d}/{step_length}  Time: {int(step_time):4d} s  ETA: {int((step_length - step - 1)*step_time):6d} s  G-Loss: {g_loss_print:10f}  D-Loss: {d_loss_print:10f}")
-                if step % 10 == 0:
+                if step % 30 == 0:
                     self.save_model_data()
             self.save_model_data()
 
