@@ -7,6 +7,10 @@ from tools.color_ops import *
 vgg19_single = VGG19Single().eval()
 vgg19_multi = VGG19Multi().eval()
 
+def vgg_to_device(device: str):
+    vgg19_single.to(device=device)
+    vgg19_multi.to(device=device)
+
 def con_loss_fn(real, fake, weight=1.0):
     return  weight * VGG_LOSS(real, fake)
 

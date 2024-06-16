@@ -3,7 +3,7 @@ from tools.color_ops import rgb_to_lab
 from tools.L0_smoothing import L0Smoothing
 from tools.ops import con_loss_fn, style_loss_decentralization_3, region_smoothing_loss, \
     VGG_LOSS, Lab_color_loss, total_variation_loss, generator_loss, discriminator_loss, \
-    discriminator_loss_346, L1_loss, generator_loss_m, discriminator_loss_m
+    discriminator_loss_346, L1_loss, generator_loss_m, discriminator_loss_m, vgg_to_device
 from tools.GuidedFilter import guided_filter
 from torch import optim, Tensor, nn
 from torchvision.transforms.v2.functional import rgb_to_grayscale
@@ -76,10 +76,15 @@ class Trainer:
         except Exception:
             self.init_model_weight(self.D)
     
+    def model_to_device(self):
+        self.D.to(device=self.device_type)
+        self.G.to(device=self.device_type)
+        vgg_to_device(self.device_type)
+    
     def init_g_train(self, photo: Tensor):
         '''初始化生成器'''
         self.optimizer_init_g.zero_grad()
-        generated_s, generated_m = self.G(photo)
+        generated_s, generated_m = self.G(photo.to(device=self.device_type))
         generated = self.tanh_out_scale(guided_filter(self.sigm_out_scale(generated_s),self.sigm_out_scale(generated_s), 2, 0.01))
         Pre_train_G_loss: Tensor = con_loss_fn(photo, generated)
         Pre_train_G_loss.backward()
@@ -91,13 +96,13 @@ class Trainer:
         self.optimizer_d.zero_grad()
         self.optimizer_g.zero_grad()
         # Update G Net
-        generated_s, generated_m = self.G(photo)
+        generated_s, generated_m = self.G(photo.to(device=self.device_type))
         generated: Tensor = self.tanh_out_scale(guided_filter(self.sigm_out_scale(generated_s),self.sigm_out_scale(generated_s), 2, 0.01))
-        fake_superpixel = self.get_seg(generated.detach().numpy())
-        fake_NLMean_l0 = self.get_NLMean_l0(generated_s.detach().numpy())
+        fake_superpixel = self.get_seg(generated.detach().to(device="cpu").numpy()).to(device=self.device_type)
+        fake_NLMean_l0 = self.get_NLMean_l0(generated_s.detach().to(device="cpu").numpy()).to(device=self.device_type)
         fake_sty_gray = grayscale_to_rgb(rgb_to_grayscale(generated))
-        anime_sty_gray = grayscale_to_rgb(rgb_to_grayscale(anime))
-        gray_anime_smooth = grayscale_to_rgb(rgb_to_grayscale(anime_smooth))
+        anime_sty_gray = grayscale_to_rgb(rgb_to_grayscale(anime.to(device=self.device_type)))
+        gray_anime_smooth = grayscale_to_rgb(rgb_to_grayscale(anime_smooth.to(device=self.device_type)))
         # support
         fake_gray_logit = self.D(fake_sty_gray.detach())
         anime_gray_logit = self.D(anime_sty_gray.detach())
@@ -152,16 +157,18 @@ class Trainer:
                 
                 if epo < self.init_g_epoch:
                     g_loss = self.init_g_train(real_photo)
-                    g_loss_print = g_loss.to("cpu").data
+                    g_loss_print = g_loss.to(device="cpu").data
                     step_time = time() - start_time
                     print(f"Epoch: {epo:4d}  Step: {step:5d}/{step_length}  Time: {int(step_time):4d} s  ETA: {int((step_length - step - 1)*step_time):6d} s  G-Loss: {g_loss_print:10f}")
                 else:
                     photo_superpixel = self.get_seg(real_photo.detach().numpy())
                     g_loss, d_loss = self.update_g(real_photo, photo_superpixel, anime, anime_smooth)
-                    g_loss_print = g_loss.to("cpu").data
-                    d_loss_print = d_loss.to("cpu").data
+                    g_loss_print = g_loss.to(device="cpu").data
+                    d_loss_print = d_loss.to(device="cpu").data
                     step_time = time() - start_time
                     print(f"Epoch: {epo:4d}  Step: {step:5d}/{step_length}  Time: {int(step_time):4d} s  ETA: {int((step_length - step - 1)*step_time):6d} s  G-Loss: {g_loss_print:10f}  D-Loss: {d_loss_print:10f}")
+                if step % 10 == 0:
+                    self.save_model_data()
             self.save_model_data()
 
         # photo = torch.rand((2, 3, 512, 512))
