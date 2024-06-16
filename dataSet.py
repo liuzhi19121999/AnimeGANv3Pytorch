@@ -29,7 +29,7 @@ class ImageDataSet(Dataset):
         self.init_data()
     
     def init_data(self):
-        dataset_dir = "./dataset"
+        dataset_dir = "/kaggle/input/animegan/dataset"
         # train photo
         train_dir = f"{dataset_dir}/train_photo"
         train_path_files = os.listdir(train_dir)
