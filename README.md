@@ -90,6 +90,11 @@ Recommend using P100 or higher GPU for training, but you can also try using Dire
 ### Model Deployment
 
 - The project supports export and deployment in ONNX format.
+
+```shell
+python export_to_onnx.py
+```
+
 - The exported model needs to pass in data by [batch, channel, height, width] and the colour channel is of BGR type.
 - The data format of the processed image is the same as that of the incoming image.
 

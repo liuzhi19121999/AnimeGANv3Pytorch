@@ -90,6 +90,11 @@ python train.py --dataset ChinaPhoto --init_G_epoch 10 --epoch 50 --start_epoch 
 ### 模型部署
 
 - 项目支持以 ONNX 格式导出并部署。
+
+```shell
+python export_to_onnx.py
+```
+
 - 导出的模型需要按 [batch, channel, height, width] 传入数据，且色彩通道为 BGR 类型
 - 处理后的图片数据格式与传入图片的数据格式一致
 
