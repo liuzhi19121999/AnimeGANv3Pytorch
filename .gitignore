@@ -1,0 +1,27 @@
+/smooth_data.py
+/smooth_nosie.py
+/torch_color_ops.py
+# /dataset/test
+# /dataset/Shinkai
+# /dataset/Paprika
+# /dataset/Hayao
+# /dataset/val/*.jpg
+# /dataset/train_photo/*.jpg
+# /dataset/seg_train_5-0.8-50/*.jpg
+# /dataset/SummerWar/smooth/*.jpg
+# /dataset/SummerWar/smooth_noise/*.jpg
+# /dataset/SummerWar/style/*.jpg
+/dataset
+/model_state
+/kaggle.py
+/AnimeGANv3Pytorch.rar
+/vgg19.pth
+/中国唱诗班合集.mp4
+/clip_video_picture.py
+/eval.py
+/generate_photo.py
+/test_onnx.py
+/kaggle.py
+/vgg19.pth
+/tools/__pycache__
+/__pycache__
