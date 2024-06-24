@@ -103,7 +103,7 @@ show_image(out_img[0])
 
 ## 效果展示
 
-![picture](./show.jpg)
+![picture](show.jpg)
 
 ## 授权许可
 

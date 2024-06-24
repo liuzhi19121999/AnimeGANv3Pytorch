@@ -103,7 +103,7 @@ show_image(out_img[0])
 
 ## Showing the Results
 
-![picture](./show.jpg)
+![picture](show.jpg)
 
 ## License
 
