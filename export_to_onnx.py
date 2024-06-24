@@ -19,14 +19,14 @@ class OutModel(nn.Module):
         self.header_third = generate.header_third
         self.header_forth = generate.header_forth
 
-        self.m_extral_attention = generate.s_extral_attention
-        self.m_rb_first_f = generate.s_rb_first_f
-        self.m_rb_first_s = generate.s_rb_first_s
-        self.m_rb_second_f = generate.s_rb_second_f
-        self.m_rb_second_s = generate.s_rb_second_s
-        self.m_rb_third_f = generate.s_rb_third_f
-        self.m_rb_third_s = generate.s_rb_third_s
-        self.m_conv_tahn = generate.s_conv_tahn
+        self.m_extral_attention = generate.m_extral_attention
+        self.m_rb_first_f = generate.m_rb_first_f
+        self.m_rb_first_s = generate.m_rb_first_s
+        self.m_rb_second_f = generate.m_rb_second_f
+        self.m_rb_second_s = generate.m_rb_second_s
+        self.m_rb_third_f = generate.m_rb_third_f
+        self.m_rb_third_s = generate.m_rb_third_s
+        self.m_conv_tahn = generate.m_conv_tahn
     
     def padding_input(self, x: Tensor, k=1, s=1, padding_mode="reflect"):
         if (k - s) % 2 == 0 :

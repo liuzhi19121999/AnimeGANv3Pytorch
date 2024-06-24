@@ -13,5 +13,6 @@
 /test_onnx.py
 /kaggle.py
 /vgg19.pth
+/generate.onnx
 /tools/__pycache__
 /__pycache__
