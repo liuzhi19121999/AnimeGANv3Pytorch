@@ -65,7 +65,7 @@ def main():
     args = parse_args()
     edge_smooth_func(args=args)
     gen_salt_noise(args.dataset)
-    # visual_super_seg()
+    visual_super_seg()
 
 if __name__ == "__main__":
     main()

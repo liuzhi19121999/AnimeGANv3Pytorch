@@ -137,11 +137,11 @@ class Trainer:
             generated_m_logit = self.D(generated_m)
             # GAN Support
             con_loss =  con_loss_fn(photo0.to(device=self.device_type), generated.to(device=self.device_type), 0.5)
-            s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [0.5, 7.0, 32.0])
+            s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [1.0, 15.0, 38.0])
             # sty_loss = s22 + s33 + s44
-            rs_loss =  region_smoothing_loss(fake_superpixel, generated.to(device=self.device_type), 1.4) + \
+            rs_loss =  region_smoothing_loss(fake_superpixel, generated.to(device=self.device_type), 1.2) + \
                             VGG_LOSS(photo_superpixel0.to(device=self.device_type), generated.to(device=self.device_type)) * 0.5
-            color_loss =  Lab_color_loss(photo0, generated, 6.5).to(device=self.device_type)
+            color_loss =  Lab_color_loss(photo0, generated, 6.0).to(device=self.device_type)
             tv_loss  = 0.001 * total_variation_loss(generated.to(device=self.device_type))
             g_adv_loss = generator_loss(fake_gray_logit)
             # G_support_loss = g_adv_loss + con_loss + sty_loss + rs_loss + color_loss + tv_loss
