@@ -137,7 +137,7 @@ class Trainer:
             generated_m_logit = self.D(generated_m)
             # GAN Support
             con_loss =  con_loss_fn(photo0.to(device=self.device_type), generated.to(device=self.device_type), 0.5)
-            s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [1.0, 15.0, 38.0])
+            s22, s33, s44  = style_loss_decentralization_3(anime_sty_gray, fake_sty_gray,  [0.5, 2.0, 25.0])
             # sty_loss = s22 + s33 + s44
             rs_loss =  region_smoothing_loss(fake_superpixel, generated.to(device=self.device_type), 1.2) + \
                             VGG_LOSS(photo_superpixel0.to(device=self.device_type), generated.to(device=self.device_type)) * 0.5
@@ -237,7 +237,7 @@ class Trainer:
                     photo_superpixel = self.get_seg(real_photo.detach().numpy())
                     g_loss, color_loss_p, g_adv_loss_p, con_loss_p, s22_p, s33_p, s44_p, rs_loss_p, tv_loss_p, g_m_loss_p,\
                     p0_loss_p, p4_loss_p, tv_loss_m_p, d_loss, d_sup_loss_p, \
-                    d_main_loss_p = self.update_g(real_photo, photo_superpixel, anime, anime_smooth, per_batch=2)
+                    d_main_loss_p = self.update_g(real_photo, photo_superpixel, anime, anime_smooth, per_batch=4)
                     # g_loss_print = g_loss.to(device="cpu").data
                     # d_loss_print = d_loss.to(device="cpu").data
                     step_time = time() - start_time

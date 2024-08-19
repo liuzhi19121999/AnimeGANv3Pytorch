@@ -1,13 +1,10 @@
 from AnimeGAN import Trainer
 import argparse
-from torch_directml import device
-
-dml = device(0)
 
 DATA_SET = "ChinaPhoto"
-BATCH_SIZE = 4
-EPOCH = 11
-START_EPOCH =11
+BATCH_SIZE = 8
+EPOCH = 30
+START_EPOCH = 1
 INIT_G_EPOCH = 10
 INIT_G_LR = 2e-4
 G_LR = 1e-4

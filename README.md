@@ -59,7 +59,7 @@ As AnimeGANv3 adopts the new DTGAN model and there is currently no corresponding
 | ·······
 ```
 
-### Initialising the Environment
+### Initializing the Environment
 
 - Installing Python3
 - Cloning the project locally
@@ -112,7 +112,7 @@ show_image(out_img[0])
 
 ## License
 
-Please refer to the relevant permission statement of the original author.
+Please refer to the relevant permission statement of the [original author](https://github.com/TachibanaYoshino/AnimeGANv3).
 
 ```md
 This repo is made freely available to academic and non-academic entities for non-commercial purposes such as academic research, teaching, scientific publications.  
@@ -123,3 +123,7 @@ Regarding the request for commercial use, please contact us via email to help yo
 ## Author
 
 Liu `liuzhi1999@foxmail.com`
+
+## Acknowledgments
+
+Thanks to Asher Chan, the original author, for the feedback on the PyTorch version of AnimeGANv3.

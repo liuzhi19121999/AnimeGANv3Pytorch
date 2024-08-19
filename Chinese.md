@@ -112,7 +112,7 @@ show_image(out_img[0])
 
 ## 授权许可
 
-参考以下原作者的相关许可申明。
+参考以下[原作者](https://github.com/TachibanaYoshino/AnimeGANv3)的相关许可申明。
 
 ```plain
 This repo is made freely available to academic and non-academic entities for non-commercial purposes such as academic research, teaching, scientific publications.  
@@ -123,3 +123,7 @@ Regarding the request for commercial use, please contact us via email to help yo
 ## 作者
 
 Liu `liuzhi1999@foxmail.com`
+
+## 鸣谢
+
+感谢原作者 —— Asher Chan，对 PyTorch 版本的 AnimeGANv3 做出的帮助。

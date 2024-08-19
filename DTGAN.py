@@ -20,13 +20,10 @@ class ConLadeLRelu(nn.Module):
         eps = 1e-5
         tx = self.padding_input(x)
         tx = self.lade_convd(tx)
-        t_mean = torch.mean(tx, dim=[1, 2], keepdim=True)  
-        # 计算方差（注意：PyTorch 的 var 默认是无偏的，即除以 N-1，但我们可以设置 correction=0 来得到样本方差，即除以 N）  
-        t_sigma = torch.var(tx, dim=[1, 2], keepdim=True, unbiased=False)
-        
-        in_mean = torch.mean(x, dim=[1, 2], keepdim=True)
-        # 计算方差（注意：PyTorch 的 var 默认是无偏的，即除以 N-1，但我们可以设置 correction=0 来得到样本方差，即除以 N）  
-        in_sigma = torch.var(x, dim=[1, 2], keepdim=True, unbiased=False)
+        t_mean = torch.mean(tx, dim=[2, 3], keepdim=True)  
+        t_sigma = torch.var(tx, dim=[2, 3], keepdim=True, unbiased=False)
+        in_mean = torch.mean(x, dim=[2, 3], keepdim=True)
+        in_sigma = torch.var(x, dim=[2, 3], keepdim=True, unbiased=False)
         x_in = (x - in_mean) / (torch.sqrt(in_sigma + eps))
         x = x_in * (torch.sqrt(t_sigma + eps)) + t_mean
         return x
