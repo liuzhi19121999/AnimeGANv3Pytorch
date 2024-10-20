@@ -54,6 +54,7 @@
 | AnimeGAN.py
 | preparing.py
 | export_to_onnx.py
+| vgg19.pth
 | 
 | ·······
 | ·······

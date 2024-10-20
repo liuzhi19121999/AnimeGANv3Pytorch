@@ -54,6 +54,7 @@ As AnimeGANv3 adopts the new DTGAN model and there is currently no corresponding
 | AnimeGAN.py
 | preparing.py
 | export_to_onnx.py
+| vgg19.pth
 | 
 | ·······
 | ·······
